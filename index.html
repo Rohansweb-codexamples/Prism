@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prism AI | The Studio</title>
-    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/shapes.svg" type="image/svg+xml">
-    <script src="https://js.puter.com/v2/"></script>
+    <title>Prism | Creative Studio</title>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Favicon matching the logo -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%233b82f6;'/><stop offset='50%' style='stop-color:%236366f1;'/><stop offset='100%' style='stop-color:%23a855f7;'/></linearGradient></defs><rect width='80' height='80' x='10' y='10' rx='20' fill='url(%23g)'/><path d='M35 50 L50 35 L65 50 L50 65 Z' fill='white'/></svg>">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -95,16 +99,6 @@
 
         .studio-panel.active { right: 0; }
 
-        .message-bubble {
-            max-width: 85%;
-            animation: slideUp 0.3s ease-out forwards;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .cursor-blink::after {
             content: '';
             display: inline-block;
@@ -134,7 +128,6 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        /* Toggle Component */
         .mode-toggle-pill {
             display: flex;
             background: var(--bg-sidebar);
@@ -153,9 +146,7 @@
             z-index: 1;
             transition: color 0.2s;
         }
-        .mode-btn.active {
-            color: white;
-        }
+        .mode-btn.active { color: white; }
         .mode-bg {
             position: absolute;
             height: calc(100% - 4px);
@@ -166,32 +157,100 @@
             left: 2px;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .mode-toggle-pill[data-mode="studio"] .mode-bg {
-            transform: translateX(100%);
+        .mode-toggle-pill[data-mode="studio"] .mode-bg { transform: translateX(100%); }
+
+        /* Lockscreen Styles */
+        #auth-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.8s cubic-bezier(0.87, 0, 0.13, 1);
+        }
+        #auth-overlay.unlocked {
+            transform: translateY(-100%);
+        }
+
+        .btn-studio-ready {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            border-radius: 9999px;
+            padding: 12px 32px;
+            font-weight: 800;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+            transition: all 0.3s ease;
         }
     </style>
 </head>
 <body class="flex h-screen">
 
+    <!-- Mandatory Auth Screen -->
+    <div id="auth-overlay">
+        <div class="glass w-full max-w-md p-8 rounded-3xl space-y-6 shadow-2xl border-white/10 mx-4">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 prism-gradient rounded-2xl mx-auto flex items-center justify-center text-white mb-6 shadow-xl shadow-indigo-500/20">
+                    <i class="fas fa-shapes text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white font-['Outfit']">Prism Studio</h2>
+                <p class="text-sm text-slate-400">Sign in to access your creative workspace.</p>
+            </div>
+
+            <div id="google-btn-wrapper" class="flex justify-center py-2">
+                <div id="g_id_onload"
+                     data-client_id="731921089421-nffb5f1hiqo9mheaq6vmb45dqb9po6qc.apps.googleusercontent.com"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleGoogleSignIn"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
+            </div>
+
+            <div class="relative flex items-center py-2">
+                <div class="flex-grow border-t border-white/10"></div>
+                <span class="flex-shrink mx-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">or</span>
+                <div class="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <div class="space-y-4">
+                <input type="email" id="auth-email" placeholder="Email Address" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-white">
+                <button onclick="handleEmailAuth()" class="w-full prism-gradient py-3 rounded-xl text-white font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all">Continue with Email</button>
+            </div>
+            
+            <button onclick="enterGuestMode()" class="w-full text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-indigo-400 transition-colors py-2">
+                Enter as Guest <i class="fas fa-arrow-right ml-1"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar h-full flex flex-col z-20">
-        <!-- Buttons removed from top left as requested -->
-        
         <div class="px-5 mt-6 mb-2 flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">History</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Workspace</span>
+            <button onclick="createNewChat()" class="text-slate-400 hover:text-indigo-500 transition-colors">
+                <i class="fas fa-plus-circle"></i>
+            </button>
         </div>
         
         <div class="flex-1 overflow-y-auto px-3 space-y-1" id="chat-list"></div>
         
         <div class="p-6 mt-auto border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-black/20">
-            <div class="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity cursor-pointer">
-                <div class="w-8 h-8 rounded-lg prism-gradient flex items-center justify-center shadow-lg">
-                    <i class="fas fa-layer-group text-white text-xs"></i>
+            <div id="profile-trigger" class="flex items-center gap-3 opacity-90">
+                <div id="user-avatar" class="w-8 h-8 rounded-lg prism-gradient flex items-center justify-center shadow-lg overflow-hidden">
+                    <i class="fas fa-user text-white text-xs"></i>
                 </div>
-                <div>
-                    <p class="text-[10px] font-bold tracking-widest uppercase dark:text-white text-slate-800">Prism AI</p>
-                    <p class="text-[9px] text-slate-500 dark:text-slate-400">Professional Studio • v3.0</p>
+                <div class="flex-1 min-w-0">
+                    <p id="user-name" class="text-[10px] font-bold tracking-widest uppercase dark:text-white text-slate-800 truncate">No Account</p>
+                    <p id="user-status" class="text-[9px] text-slate-500 dark:text-slate-400">Offline</p>
                 </div>
+                <button onclick="logout()" class="text-slate-500 hover:text-red-500 transition-colors">
+                    <i class="fas fa-sign-out-alt text-[10px]"></i>
+                </button>
             </div>
         </div>
     </aside>
@@ -200,37 +259,36 @@
     <main class="flex-1 flex flex-col relative">
         <header class="h-14 border-b border-slate-200 dark:border-white/5 flex items-center justify-between px-6 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-md sticky top-0 z-10">
             <div class="flex items-center gap-3">
-                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <h2 id="current-chat-title" class="font-semibold text-xs tracking-wider text-slate-600 dark:text-slate-300 uppercase">Current Session</h2>
+                <div id="online-indicator" class="w-2 h-2 rounded-full bg-slate-500"></div>
+                <h2 class="font-semibold text-xs tracking-wider text-slate-600 dark:text-slate-300 uppercase">PRISM</h2>
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="toggleTheme()" class="p-2 w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-all">
                     <i id="theme-icon" class="fas fa-moon"></i>
                 </button>
-                <button onclick="toggleStudio()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                <button onclick="toggleStudio()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400">
                     <i class="fas fa-code"></i> Studio
                 </button>
             </div>
         </header>
 
         <div id="chat-window" class="flex-1 overflow-y-auto p-6 scroll-smooth">
-            <!-- Welcome Screen -->
             <div id="welcome-msg" class="max-w-3xl mx-auto py-12 space-y-10">
                 <div class="space-y-4">
-                    <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">Welcome to <span class="text-indigo-600 dark:text-indigo-400">Prism AI</span>.</h1>
-                    <p class="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">Your professional studio assistant for engineering and creative tasks. What can we build today?</p>
+                    <h1 class="text-5xl font-extrabold tracking-tighter text-slate-900 dark:text-white font-['Outfit']">Hello, <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500">Prism</span>.</h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">Unified AI for creativity, code, and conversation.</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button onclick="quickAction('Create a responsive dashboard using Tailwind CSS')" class="starter-card p-5 rounded-2xl text-left group">
-                        <i class="fas fa-laptop-code text-indigo-500 mb-3 text-lg"></i>
-                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">System Design</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-500 mt-1">Generate complex web components and full-screen layouts.</p>
+                    <button onclick="quickAction('Analyze this text for sentiment and key themes')" class="starter-card p-6 rounded-[2rem] text-left">
+                        <i class="fas fa-brain text-indigo-500 mb-4 text-xl"></i>
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Analysis</p>
+                        <p class="text-[11px] text-slate-500 mt-2 uppercase tracking-wider">Reasoning</p>
                     </button>
-                    <button onclick="quickAction('Write a technical blog post about AI safety and ethics')" class="starter-card p-5 rounded-2xl text-left group">
-                        <i class="fas fa-file-signature text-purple-500 mb-3 text-lg"></i>
-                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Technical Analysis</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-500 mt-1">Deep-dive reports, whitepapers, and structured documentation.</p>
+                    <button onclick="quickAction('Build a interactive 3D landing page with Three.js')" class="starter-card p-6 rounded-[2rem] text-left">
+                        <i class="fas fa-code-branch text-purple-500 mb-4 text-xl"></i>
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Development</p>
+                        <p class="text-[11px] text-slate-500 mt-2 uppercase tracking-wider">Studio Mode</p>
                     </button>
                 </div>
             </div>
@@ -241,96 +299,92 @@
         <!-- Input Area -->
         <div class="p-6 bg-gradient-to-t from-white dark:from-[#020617] via-white dark:via-[#020617] to-transparent">
             <div class="max-w-3xl mx-auto relative">
-                
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center justify-between mb-3">
                     <div id="mode-toggle" class="mode-toggle-pill" data-mode="chat">
                         <div class="mode-bg"></div>
-                        <button onclick="setMode('chat')" class="mode-btn active relative z-10 text-slate-600 dark:text-slate-400" id="btn-chat-mode">Chat</button>
-                        <button onclick="setMode('studio')" class="mode-btn relative z-10 text-slate-600 dark:text-slate-400" id="btn-studio-mode">Studio</button>
+                        <button onclick="setMode('chat')" class="mode-btn active relative z-10" id="btn-chat-mode">Chat</button>
+                        <button onclick="setMode('studio')" class="mode-btn relative z-10" id="btn-studio-mode">Studio</button>
                     </div>
+                    <div id="typing-indicator" class="hidden text-[10px] font-bold text-indigo-500 uppercase tracking-widest animate-pulse">Prism is thinking...</div>
                 </div>
 
-                <div id="image-preview-container" class="hidden mb-3 flex items-center gap-2 p-2 glass rounded-xl inline-flex relative shadow-xl">
-                    <img id="image-preview" src="" alt="Preview" class="max-h-24 rounded-lg border border-slate-200 dark:border-white/10">
-                    <button onclick="clearImage()" class="absolute -top-2 -right-2 bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-white/10 w-6 h-6 rounded-full text-[10px] flex items-center justify-center text-slate-800 dark:text-white hover:bg-red-500 hover:text-white transition-colors"><i class="fas fa-times"></i></button>
-                </div>
-                
-                <div class="relative glass rounded-2xl transition-all focus-within:ring-2 focus-within:ring-indigo-500/20 shadow-lg border-slate-200 dark:border-white/10">
+                <div class="relative glass rounded-3xl transition-all shadow-xl border-slate-200 dark:border-white/10 overflow-hidden">
                     <textarea 
                         id="user-input" 
-                        placeholder="Message Prism AI..." 
+                        placeholder="Type a message or code request..." 
                         rows="1" 
-                        class="w-full bg-transparent border-none focus:ring-0 py-4 px-5 text-slate-900 dark:text-white resize-none max-h-60 placeholder-slate-400 dark:placeholder-slate-600"
+                        class="w-full bg-transparent border-none focus:ring-0 py-5 px-6 text-slate-900 dark:text-white resize-none max-h-60 placeholder-slate-400 font-medium"
                         oninput="autoResize(this)"></textarea>
                     
-                    <div class="flex items-center justify-between px-3 pb-3">
-                        <div class="flex items-center gap-1">
-                            <button onclick="triggerFileInput()" class="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
-                                <i class="fas fa-image text-sm"></i>
-                            </button>
-                            <button class="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-all">
-                                <i class="fas fa-paperclip text-sm"></i>
+                    <div class="flex items-center justify-between px-4 pb-4">
+                        <div class="flex items-center gap-2">
+                            <button class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-white/5 rounded-xl transition-all">
+                                <i class="fas fa-paperclip"></i>
                             </button>
                         </div>
-                        <button id="send-btn" onclick="handleSend()" class="w-10 h-10 prism-gradient rounded-xl shadow-lg flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all">
-                            <i class="fas fa-arrow-up text-sm"></i>
+                        <button id="send-btn" onclick="handleSend()" class="h-10 px-5 prism-gradient rounded-xl text-white font-bold text-[10px] uppercase tracking-widest flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/20">
+                            Process <i class="fas fa-bolt text-[8px]"></i>
                         </button>
                     </div>
                 </div>
-                <p class="text-[9px] text-center mt-3 text-slate-400 dark:text-slate-600 font-bold uppercase tracking-[0.3em]">Advanced Cognitive System</p>
             </div>
         </div>
     </main>
 
     <!-- Studio Panel -->
     <div id="studio-panel" class="studio-panel shadow-2xl">
-        <div class="h-14 border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-6 bg-slate-50 dark:bg-slate-950">
+        <div class="h-14 border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-6 bg-slate-50 dark:bg-[#0f172a]">
             <div class="flex items-center gap-3">
-                <i class="fas fa-cube text-indigo-500 text-xs"></i>
-                <h3 class="font-bold text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Application Studio</h3>
+                <i class="fas fa-rocket text-indigo-500 text-xs"></i>
+                <h3 class="font-bold text-[10px] uppercase tracking-widest text-slate-500">Studio Preview</h3>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="copyStudioCode()" class="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white">Copy Source</button>
-                <button onclick="toggleStudio()" class="w-8 h-8 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center transition-all text-slate-600 dark:text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+            <button onclick="toggleStudio()" class="w-8 h-8 rounded-full hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center transition-all">
+                <i class="fas fa-times text-slate-400"></i>
+            </button>
         </div>
-        <div class="flex bg-slate-100 dark:bg-slate-900">
-            <button onclick="switchStudioTab('preview')" id="tab-preview" class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 border-indigo-600 bg-white dark:bg-white/5 transition-all text-slate-900 dark:text-white">Live Preview</button>
-            <button onclick="switchStudioTab('code')" id="tab-code" class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Source Code</button>
+        <div class="flex bg-slate-100 dark:bg-[#1e293b]">
+            <button onclick="switchStudioTab('preview')" id="tab-preview" class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 border-indigo-600 text-slate-900 dark:text-white">Live</button>
+            <button onclick="switchStudioTab('code')" id="tab-code" class="px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 border-transparent text-slate-500">Source</button>
         </div>
-        <div class="flex-1 relative overflow-hidden bg-white">
-            <div id="studio-preview" class="absolute inset-0">
-                <iframe id="studio-iframe" class="w-full h-full border-none"></iframe>
+        <div class="flex-1 relative overflow-hidden bg-black">
+            <div id="studio-preview" class="absolute inset-0 flex items-center justify-center">
+                <div id="engine-ready" class="text-center p-12">
+                    <h2 class="text-white text-5xl font-black mb-4 font-['Outfit'] tracking-tight">STUDIO READY</h2>
+                    <p class="text-slate-500 mb-10 text-lg uppercase tracking-widest">Build something incredible</p>
+                    <button class="btn-studio-ready" onclick="toggleStudio()">Enter Prompt</button>
+                </div>
+                <iframe id="studio-iframe" class="w-full h-full border-none hidden"></iframe>
             </div>
             <div id="studio-code" class="absolute inset-0 bg-[#0d0d0d] hidden p-6 overflow-auto">
-                <pre class="font-mono text-sm text-slate-300 leading-relaxed"><code id="code-content"></code></pre>
+                <pre class="font-mono text-sm text-indigo-300 leading-relaxed"><code id="code-content"></code></pre>
             </div>
         </div>
     </div>
 
     <script>
-        let sessions = JSON.parse(localStorage.getItem('prism_sessions') || '[]');
+        const apiKey = ""; 
+        const BACKEND_URL = "https://prism-350g.onrender.com";
+        
+        let sessions = JSON.parse(localStorage.getItem('prism_sessions_v5') || '[]');
+        let currentUser = JSON.parse(localStorage.getItem('prism_user_v5') || 'null');
         let currentSessionId = null;
-        let pendingImageData = null;
         let isGenerating = false;
         let currentMode = 'chat';
         let ui = {};
 
-        const DEFAULT_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const MODEL = "gemini-2.5-flash-preview-09-2025";
+        
         const SYSTEM_PROMPTS = {
-            chat: `You are Prism AI, a high-performance professional assistant. Focus on conversation, analysis, and creative drafting.`,
-            studio: `You are Prism AI Studio. Your primary goal is to generate or update functional web applications. 
-ALWAYS provide ONE complete block of HTML/Tailwind wrapped in \`\`\`html tags. 
-Be concise and build professionally designed UI components.`
+            chat: `You are Prism, an advanced, multi-modal AI assistant. You can help with writing, analysis, coding, creative tasks, and more. 
+                   If the user asks for a website, dashboard, or UI component, provide a single-file HTML/Tailwind solution inside \`\`\`html code blocks. 
+                   Otherwise, respond helpfully and concisely to general questions.`,
+            studio: `You are Prism Studio. Your primary goal is to build fully functional web applications or UI components. 
+                    Always generate code for a single HTML file using Tailwind CSS and modern JS. 
+                    Ensure the design is professional, dark-mode first, and high-quality. 
+                    Wrap the code in \`\`\`html tags.`
         };
 
         window.onload = () => {
-            const savedTheme = localStorage.getItem('prism_theme') || 'dark';
-            document.documentElement.className = savedTheme;
-            updateThemeIcon(savedTheme);
-
             ui = {
                 userInput: document.getElementById('user-input'),
                 messagesList: document.getElementById('messages-list'),
@@ -338,12 +392,13 @@ Be concise and build professionally designed UI components.`
                 welcomeMsg: document.getElementById('welcome-msg'),
                 studioPanel: document.getElementById('studio-panel'),
                 studioIframe: document.getElementById('studio-iframe'),
+                engineReady: document.getElementById('engine-ready'),
                 codeContent: document.getElementById('code-content'),
-                imgPreview: document.getElementById('image-preview'),
-                imgContainer: document.getElementById('image-preview-container'),
-                chatTitle: document.getElementById('current-chat-title'),
                 chatList: document.getElementById('chat-list'),
-                modeToggle: document.getElementById('mode-toggle')
+                modeToggle: document.getElementById('mode-toggle'),
+                authOverlay: document.getElementById('auth-overlay'),
+                onlineIndicator: document.getElementById('online-indicator'),
+                typingIndicator: document.getElementById('typing-indicator')
             };
 
             ui.userInput.addEventListener('keydown', (e) => {
@@ -353,59 +408,121 @@ Be concise and build professionally designed UI components.`
                 }
             });
 
-            renderChatList();
-            if (sessions.length > 0) {
-                loadSession(sessions[0].id);
-            } else {
-                createNewChat();
+            if (currentUser) {
+                unlockInterface();
             }
+
+            renderChatList();
+            if (sessions.length > 0) loadSession(sessions[0].id);
+            else createNewChat();
         };
+
+        function unlockInterface() {
+            ui.authOverlay.classList.add('unlocked');
+            updateAuthUI();
+            if (currentUser.id !== 'guest') loadFromCloud();
+        }
+
+        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (err) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                throw err;
+            }
+        }
+
+        async function syncToCloud() {
+            if (!currentUser || currentUser.id === 'guest') return;
+            try {
+                await fetch(`${BACKEND_URL}/api/sync`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUser.id, sessions })
+                });
+                ui.onlineIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]";
+            } catch (e) { 
+                ui.onlineIndicator.className = "w-2 h-2 rounded-full bg-amber-500";
+            }
+        }
+
+        async function loadFromCloud() {
+            if (!currentUser || currentUser.id === 'guest') return;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/load/${currentUser.id}`);
+                const data = await res.json();
+                if (data.sessions && data.sessions.length > 0) {
+                    sessions = data.sessions;
+                    localStorage.setItem('prism_sessions_v5', JSON.stringify(sessions));
+                    renderChatList();
+                    if (sessions.length > 0) loadSession(sessions[0].id);
+                }
+            } catch (e) { console.warn("Load failed."); }
+        }
+
+        async function handleGoogleSignIn(response) {
+            const payload = parseJwt(response.credential);
+            currentUser = { id: payload.sub, name: payload.name, email: payload.email, picture: payload.picture };
+            finalizeSignIn();
+        }
+
+        function handleEmailAuth() {
+            const email = document.getElementById('auth-email').value;
+            if (!email || !email.includes('@')) return;
+            currentUser = { id: btoa(email), name: email.split('@')[0], email };
+            finalizeSignIn();
+        }
+
+        function enterGuestMode() {
+            currentUser = { id: 'guest', name: 'Guest User', email: null };
+            finalizeSignIn();
+        }
+
+        function finalizeSignIn() {
+            localStorage.setItem('prism_user_v5', JSON.stringify(currentUser));
+            unlockInterface();
+        }
+
+        function logout() {
+            localStorage.removeItem('prism_user_v5');
+            location.reload();
+        }
+
+        function updateAuthUI() {
+            document.getElementById('user-name').innerText = currentUser.name;
+            const isGuest = currentUser.id === 'guest';
+            document.getElementById('user-status').innerText = isGuest ? "Local" : "Cloud Active";
+            ui.onlineIndicator.className = isGuest ? "w-2 h-2 rounded-full bg-slate-500" : "w-2 h-2 rounded-full bg-emerald-500";
+            
+            if (currentUser.picture) {
+                document.getElementById('user-avatar').innerHTML = `<img src="${currentUser.picture}" class="w-full h-full object-cover">`;
+            } else {
+                document.getElementById('user-avatar').innerHTML = `<i class="fas ${isGuest ? 'fa-user-secret' : 'fa-user'} text-white text-xs"></i>`;
+            }
+        }
+
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+        }
 
         function setMode(mode) {
             currentMode = mode;
             ui.modeToggle.dataset.mode = mode;
             document.getElementById('btn-chat-mode').classList.toggle('active', mode === 'chat');
             document.getElementById('btn-studio-mode').classList.toggle('active', mode === 'studio');
-            ui.userInput.placeholder = mode === 'chat' ? 'Message Prism AI...' : 'Describe the app to build...';
-        }
-
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.contains('dark');
-            const newTheme = isDark ? 'light' : 'dark';
-            document.documentElement.className = newTheme;
-            localStorage.setItem('prism_theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById('theme-icon');
-            icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
-        }
-
-        function saveSessions() { localStorage.setItem('prism_sessions', JSON.stringify(sessions)); }
-
-        function renderChatList() {
-            ui.chatList.innerHTML = '';
-            sessions.forEach(s => {
-                const item = document.createElement('button');
-                const isActive = s.id === currentSessionId;
-                item.className = `w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-3 ${isActive ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200'}`;
-                item.innerHTML = `
-                    <i class="fas fa-circle text-[6px] ${isActive ? 'text-indigo-500' : 'opacity-20'}"></i> 
-                    <span class="truncate text-xs">${s.title}</span>
-                `;
-                item.onclick = () => loadSession(s.id);
-                ui.chatList.appendChild(item);
-            });
         }
 
         function createNewChat() {
             const id = Date.now();
-            const newSession = { id, title: "Untitled Session", history: [], studioCode: "" };
-            sessions.unshift(newSession);
-            currentSessionId = id;
-            saveSessions();
-            renderChatList();
+            const session = { id, title: "NEW PROJECT", history: [], studioCode: "" };
+            sessions.unshift(session);
             loadSession(id);
         }
 
@@ -413,199 +530,124 @@ Be concise and build professionally designed UI components.`
             currentSessionId = id;
             const session = sessions.find(s => s.id === id);
             if (!session) return;
-            
-            ui.chatTitle.innerText = session.title;
             ui.messagesList.innerHTML = '';
             ui.welcomeMsg.classList.toggle('hidden', session.history.length > 0);
-            
-            session.history.forEach(msg => appendMessageUI(msg.role === 'user' ? 'user' : 'bot', msg.content, msg.image, false, false));
-            refreshStudioUI(session.studioCode || "");
+            session.history.forEach(m => appendMessageUI(m.role, m.content));
+            refreshStudio(session.studioCode);
             renderChatList();
-            ui.chatWindow.scrollTo({top: ui.chatWindow.scrollHeight});
         }
 
-        async function updateSessionTitle(text) {
-            const session = sessions.find(s => s.id === currentSessionId);
-            if (!session || session.title !== "Untitled Session") return;
-            try {
-                const res = await puter.ai.chat(`Summarize this query for a short chat title (max 3 words): "${text}"`, { model: DEFAULT_MODEL });
-                session.title = res.message.content.replace(/['"]+/g, '').trim();
-                ui.chatTitle.innerText = session.title;
-                saveSessions();
-                renderChatList();
-            } catch (e) {
-                session.title = text.substring(0, 15) + "...";
-                renderChatList();
-            }
-        }
-
-        function refreshStudioUI(code) {
-            ui.codeContent.innerText = code;
-            const doc = ui.studioIframe.contentWindow.document;
-            doc.open();
-            doc.write(code || "<html><body style='background:#f8fafc;color:#94a3b8;display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;margin:0;'>Studio is idle. Generate an application to begin.</body></html>");
-            doc.close();
-        }
-
-        function handleCodeGeneration(code) {
-            const session = sessions.find(s => s.id === currentSessionId);
-            if (session) {
-                session.studioCode = code.trim();
-                saveSessions();
-                refreshStudioUI(session.studioCode);
-                if (!ui.studioPanel.classList.contains('active')) toggleStudio();
-            }
-        }
-
-        function appendMessageUI(role, text, imageSrc = null, isStreaming = false, shouldTriggerStudio = true) {
-            const codeRegex = /```html([\s\S]*?)```/g;
-            let match;
-            let displayText = text;
-
-            if (!isStreaming && role === 'bot' && (match = codeRegex.exec(text))) {
-                if(shouldTriggerStudio) handleCodeGeneration(match[1]);
-                displayText = text.replace(codeRegex, `
-                    <div class="mt-4 p-5 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center justify-between shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                                <i class="fas fa-layer-group"></i>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Prism Studio</p>
-                                <p class="text-xs font-semibold text-slate-900 dark:text-white">Full-Stack Render Ready</p>
-                            </div>
-                        </div>
-                        <button onclick="toggleStudio()" class="text-[10px] font-bold uppercase bg-slate-900 dark:bg-white text-white dark:text-black px-4 py-2 rounded-lg hover:opacity-90 transition-colors">Launch App</button>
-                    </div>
-                `);
-            }
-
-            const existing = document.querySelector(`[data-role="${role}"][data-streaming="true"]`);
-            
-            if (existing && isStreaming) {
-                existing.querySelector('.text-content').innerHTML = displayText.replace(/\n/g, '<br>');
-                ui.chatWindow.scrollTo({top: ui.chatWindow.scrollHeight});
-                return;
-            }
-
-            if (existing && !isStreaming) {
-                existing.dataset.streaming = "false";
-                existing.querySelector('.text-content').classList.remove('cursor-blink');
-                existing.querySelector('.text-content').innerHTML = displayText.replace(/\n/g, '<br>');
-                return;
-            }
-
-            const div = document.createElement('div');
-            div.className = `flex flex-col ${role === 'user' ? 'items-end' : 'items-start'} gap-2 w-full`;
-            if (isStreaming) div.dataset.streaming = "true";
-            div.dataset.role = role;
-            
-            div.innerHTML = `
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">${role === 'user' ? 'User' : 'Prism AI'}</span>
-                </div>
-                <div class="message-bubble ${role === 'user' ? 'bg-slate-100 dark:bg-slate-800 rounded-2xl rounded-tr-none' : 'bg-transparent'} py-1 text-[15px] leading-relaxed text-slate-800 dark:text-slate-200 w-full">
-                    ${imageSrc ? `<img src="${imageSrc}" class="rounded-xl mb-4 max-h-64 border border-slate-200 dark:border-white/10 shadow-lg">` : ''}
-                    <div class="text-content ${isStreaming ? 'cursor-blink' : ''} ${role === 'user' ? 'px-4 py-3' : ''}">${displayText.replace(/\n/g, '<br>')}</div>
-                </div>
-            `;
-            ui.messagesList.appendChild(div);
-            ui.chatWindow.scrollTo({top: ui.chatWindow.scrollHeight, behavior: 'smooth'});
+        function renderChatList() {
+            ui.chatList.innerHTML = '';
+            sessions.forEach(s => {
+                const btn = document.createElement('button');
+                const active = s.id === currentSessionId;
+                btn.className = `w-full text-left px-4 py-3 rounded-xl transition-all text-[10px] font-bold uppercase tracking-widest flex justify-between items-center group ${active ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' : 'text-slate-500 hover:text-white hover:bg-white/5'}`;
+                btn.innerHTML = `<span>${s.title}</span> <i class="fas fa-chevron-right text-[8px] opacity-0 group-hover:opacity-100"></i>`;
+                btn.onclick = () => loadSession(s.id);
+                ui.chatList.appendChild(btn);
+            });
         }
 
         async function handleSend() {
             if (isGenerating) return;
             const text = ui.userInput.value.trim();
-            const imgData = pendingImageData;
-            if (!text && !imgData) return;
+            if (!text) return;
 
             isGenerating = true;
             ui.userInput.value = '';
             ui.userInput.style.height = 'auto';
             ui.welcomeMsg.classList.add('hidden');
-            appendMessageUI('user', text, imgData);
-            clearImage();
+            ui.typingIndicator.classList.remove('hidden');
+            appendMessageUI('user', text);
 
             const session = sessions.find(s => s.id === currentSessionId);
-            if (session.history.length === 0) updateSessionTitle(text);
-
-            const prompt = currentMode === 'studio' ? SYSTEM_PROMPTS.studio : SYSTEM_PROMPTS.chat;
-
-            const messages = [
-                { role: 'system', content: prompt },
-                ...session.history.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
-                { role: 'user', content: text || "Analyze this image." }
+            const contents = [
+                ...session.history.map(m => ({ 
+                    role: m.role === 'user' ? 'user' : 'model', 
+                    parts: [{ text: m.content }] 
+                })),
+                { role: 'user', parts: [{ text: text }] }
             ];
 
-            let fullResponse = "";
             try {
-                const response = await puter.ai.chat(messages, { model: DEFAULT_MODEL, stream: true });
-                for await (const part of response) {
-                    if (part?.text) {
-                        fullResponse += part.text;
-                        appendMessageUI('bot', fullResponse, null, true);
+                const result = await fetchWithRetry(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: contents,
+                            systemInstruction: { parts: [{ text: SYSTEM_PROMPTS[currentMode] }] }
+                        })
                     }
+                );
+
+                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Prism could not process this request.";
+                appendMessageUI('bot', responseText);
+                
+                session.history.push({ role: 'user', content: text }, { role: 'bot', content: responseText });
+                
+                const codeMatch = responseText.match(/```html([\s\S]*?)```/);
+                if (codeMatch) {
+                    session.studioCode = codeMatch[1].trim();
+                    refreshStudio(session.studioCode);
+                    if (!ui.studioPanel.classList.contains('active')) toggleStudio();
                 }
-                appendMessageUI('bot', fullResponse, null, false);
-                session.history.push({ role: "user", content: text, image: imgData });
-                session.history.push({ role: "bot", content: fullResponse });
-                saveSessions();
+
+                if (session.title === "NEW PROJECT") {
+                    session.title = text.substring(0, 15).toUpperCase();
+                }
+                
+                saveData();
+                renderChatList();
             } catch (err) {
-                appendMessageUI('bot', "Connection interrupted. Please verify your request and try again.");
+                appendMessageUI('bot', "Connection unstable. Retrying in background...");
             } finally {
                 isGenerating = false;
+                ui.typingIndicator.classList.add('hidden');
             }
         }
 
-        function quickAction(text) {
-            ui.userInput.value = text;
-            handleSend();
+        function appendMessageUI(role, text) {
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${role === 'user' ? 'items-end' : 'items-start'} mb-10`;
+            const formattedText = text.replace(/```(\w+)?([\s\S]*?)```/g, '<pre class="bg-black/50 p-4 rounded-xl my-4 font-mono text-xs text-indigo-300 overflow-x-auto"><code>$2</code></pre>');
+            div.innerHTML = `
+                <div class="${role === 'user' ? 'bg-indigo-600 text-white rounded-[1.8rem] rounded-tr-none' : 'text-slate-300'} px-6 py-4 text-sm max-w-[85%] leading-relaxed shadow-xl">
+                    <div class="content">${formattedText}</div>
+                </div>
+            `;
+            ui.messagesList.appendChild(div);
+            ui.chatWindow.scrollTo({ top: ui.chatWindow.scrollHeight, behavior: 'smooth' });
+        }
+
+        function refreshStudio(code) {
+            if (!code) {
+                ui.engineReady.classList.remove('hidden');
+                ui.studioIframe.classList.add('hidden');
+                return;
+            }
+            ui.engineReady.classList.add('hidden');
+            ui.studioIframe.classList.remove('hidden');
+            ui.codeContent.innerText = code;
+            const doc = ui.studioIframe.contentWindow.document;
+            doc.open(); doc.write(code); doc.close();
         }
 
         function toggleStudio() { ui.studioPanel.classList.toggle('active'); }
-        function triggerFileInput() { document.getElementById('file-input').click(); }
-        
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                pendingImageData = event.target.result;
-                ui.imgPreview.src = event.target.result;
-                ui.imgContainer.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function clearImage() {
-            pendingImageData = null;
-            ui.imgContainer.classList.add('hidden');
-            document.getElementById('file-input').value = "";
-        }
-
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
+        function saveData() { localStorage.setItem('prism_sessions_v5', JSON.stringify(sessions)); syncToCloud(); }
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+        function autoResize(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+        function quickAction(t) { ui.userInput.value = t; handleSend(); }
 
         function switchStudioTab(tab) {
             const isPreview = tab === 'preview';
             document.getElementById('studio-preview').classList.toggle('hidden', !isPreview);
             document.getElementById('studio-code').classList.toggle('hidden', isPreview);
-            const activeTabClass = 'border-indigo-600 text-slate-900 dark:text-white bg-white dark:bg-white/5';
-            const inactiveTabClass = 'border-transparent text-slate-500';
-            
-            document.getElementById('tab-preview').className = `px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${isPreview ? activeTabClass : inactiveTabClass}`;
-            document.getElementById('tab-code').className = `px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${!isPreview ? activeTabClass : inactiveTabClass}`;
-        }
-
-        function copyStudioCode() {
-            const session = sessions.find(s => s.id === currentSessionId);
-            if (session && session.studioCode) {
-                navigator.clipboard.writeText(session.studioCode);
-            }
+            document.getElementById('tab-preview').className = `px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${isPreview ? 'border-indigo-600 text-white' : 'border-transparent text-slate-500'}`;
+            document.getElementById('tab-code').className = `px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${!isPreview ? 'border-indigo-600 text-white' : 'border-transparent text-slate-500'}`;
         }
     </script>
-    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFileSelect(event)">
 </body>
 </html>
